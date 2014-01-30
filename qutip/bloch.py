@@ -1,35 +1,23 @@
-# This file is part of QuTiP: Quantum Toolbox in Python.
+# This file is part of QuTiP.
 #
-#    Copyright (c) 2011 and later, Paul D. Nation and Robert J. Johansson.
-#    All rights reserved.
+#    QuTiP is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
 #
-#    Redistribution and use in source and binary forms, with or without 
-#    modification, are permitted provided that the following conditions are 
-#    met:
+#    QuTiP is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
 #
-#    1. Redistributions of source code must retain the above copyright notice, 
-#       this list of conditions and the following disclaimer.
+#    You should have received a copy of the GNU General Public License
+#    along with QuTiP.  If not, see <http://www.gnu.org/licenses/>.
 #
-#    2. Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
+# Copyright (C) 2011 and later, Paul D. Nation & Robert J. Johansson
 #
-#    3. Neither the name of the QuTiP: Quantum Toolbox in Python nor the names
-#       of its contributors may be used to endorse or promote products derived
-#       from this software without specific prior written permission.
+# 2013 - JP Hadden contributed code for improved arrow styles.
 #
-#    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-#    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-#    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-#    PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-#    HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-#    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-#    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-#    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
-#    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-#    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
-#    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-###############################################################################
+###########################################################################
 
 import os
 
@@ -135,8 +123,10 @@ class Bloch():
             self.user_axes = axes
         # use user-supplied figure object if present
         self.input_axes = axes
-        # he size of the figure in inches, default = [7,7].
-        self.size = [7, 7]
+        # Background axes, default = False
+        self.background = False
+        # The size of the figure in inches, default = [5,5].
+        self.size = [5, 5]
         # Azimuthal and Elvation viewing angles, default = [-60,30].
         self.view = [-60, 30]
         # Color of Bloch sphere, default = #FFDDDD
@@ -156,7 +146,7 @@ class Bloch():
         # Labels for y-axis (in LaTex), default = ['$y$','']
         self.ylabel = ['$y$', '']
         # Position of y-axis labels, default = [1.1,-1.1]
-        self.ylpos = [1.1, -1.1]
+        self.ylpos = [1.2, -1.2]
         # Labels for z-axis (in LaTex),
         # default = ['$\left|0\\right>$','$\left|1\\right>$']
         self.zlabel = ['$\left|0\\right>$', '$\left|1\\right>$']
@@ -172,7 +162,7 @@ class Bloch():
         # List of colors for Bloch vectors, default = ['b','g','r','y']
         self.vector_color = ['g', '#CC6600', 'b', 'r']
         #: Width of Bloch vectors, default = 5
-        self.vector_width = 5
+        self.vector_width = 3
         #: Style of Bloch vectors, default = '-|>' (or 'simple')
         self.vector_style = '-|>'
         #: Sets the width of the vectors arrowhead
@@ -191,10 +181,63 @@ class Bloch():
         self.points = []
         # Data for Bloch vectors
         self.vectors = []
+        # Data for annotations
+        self.annotations = []
         # Number of times sphere has been saved
         self.savenum = 0
         # Style of points, 'm' for multiple colors, 's' for single color
         self.point_style = []
+
+    def set_label_convention(self, convention):
+        """Set x, y and z labels according to one of conventions.
+
+        Parameters
+        ----------
+        convention : string
+            One of the following:
+            - "original"
+            - "xyz"
+            - "sx sy sz"
+            - "01"
+            - "polarization jones"
+            - "polarization jones letters"
+              see also: http://en.wikipedia.org/wiki/Jones_calculus
+            - "polarization stokes"
+              see also: http://en.wikipedia.org/wiki/Stokes_parameters
+        """
+        ketex = "$\\left.|%s\\right\\rangle$"
+        # \left.| is on purpose, so that every ket has the same size
+
+        if convention == "original":
+            self.xlabel = ['$x$', '']
+            self.ylabel = ['$y$', '']
+            self.zlabel = ['$\\left|0\\right>$', '$\\left|1\\right>$']
+        elif convention == "xyz":
+            self.xlabel = ['$x$', '']
+            self.ylabel = ['$y$', '']
+            self.zlabel = ['$z$', '']
+        elif convention == "sx sy sz":
+            self.xlabel = ['$s_x$', '']
+            self.ylabel = ['$s_y$', '']
+            self.zlabel = ['$s_z$', '']
+        elif convention == "01":
+            self.xlabel = ['', '']
+            self.ylabel = ['', '']
+            self.zlabel = ['$\\left|0\\right>$', '$\\left|1\\right>$']
+        elif convention == "polarization jones":
+            self.xlabel = [ketex % "\\nearrow\\hspace{-1.46}\\swarrow", ketex % "\\nwarrow\\hspace{-1.46}\\searrow"]
+            self.ylabel = [ketex % "\\circlearrowleft", ketex % "\\circlearrowright"]
+            self.zlabel = [ketex % "\\leftrightarrow", ketex % "\\updownarrow"]
+        elif convention == "polarization jones letters":
+            self.xlabel = [ketex % "D", ketex % "A"]
+            self.ylabel = [ketex % "L", ketex % "R"]
+            self.zlabel = [ketex % "H", ketex % "V"]
+        elif convention == "polarization stokes":
+            self.ylabel = ["$\\nearrow\\hspace{-1.46}\\swarrow$", "$\\nwarrow\\hspace{-1.46}\\searrow$"]
+            self.zlabel = ["$\\circlearrowleft$", "$\\circlearrowright$"]
+            self.xlabel = ["$\\leftrightarrow$", "$\\updownarrow$"]
+        else:
+            raise Exception("No such convention.")
 
     def __str__(self):
         s = ""
@@ -235,6 +278,7 @@ class Bloch():
         self.points = []
         self.vectors = []
         self.point_style = []
+        self.annotations = []
 
     def add_points(self, points, meth='s'):
         """Add a list of data points to bloch sphere.
@@ -306,6 +350,40 @@ class Bloch():
         else:
             self.vectors.append(vectors)
 
+    def add_annotation(self, state_or_vector, text, **kwargs):
+        """Add a text or LaTeX annotation to Bloch sphere,
+        parametrized by a qubit state or a vector.
+
+        Parameters
+        ----------
+        state_or_vector : Qobj/array/list/tuple
+            Position for the annotaion.
+            Qobj of a qubit or a vector of 3 elements.
+
+        text : str/unicode
+            Annotation text.
+            You can use LaTeX, but remember to use raw string
+            e.g. r"$\langle x \rangle$"
+            or escape backslashes
+            e.g. "$\\langle x \\rangle$". 
+
+        **kwargs :
+            Options as for mplot3d.axes3d.text, including:
+            fontsize, color, horizontalalignment, verticalalignment.
+        """
+        if isinstance(state_or_vector, Qobj):
+            vec = [expect(sigmax(), state_or_vector),
+                   expect(sigmay(), state_or_vector),
+                   expect(sigmaz(), state_or_vector)]
+        elif isinstance(state_or_vector, (list, ndarray, tuple)) \
+              and len(state_or_vector) == 3: 
+            vec = state_or_vector 
+        else:
+            raise Exception("Position needs to be specified by a qubit state or a 3D vector.")
+        self.annotations.append({'position': vec,
+                                 'text': text,
+                                 'opts': kwargs})
+
     def make_sphere(self):
         """
         Plots Bloch sphere and data sets.
@@ -321,14 +399,24 @@ class Bloch():
                 self.fig = figure(figsize=self.size)
             self.axes = Axes3D(self.fig, azim=self.view[0],
                                elev=self.view[1])
-        self.axes.clear()
+        if self.background:
+            self.axes.clear()
+            self.axes.set_xlim3d(-1.3, 1.3)
+            self.axes.set_ylim3d(-1.3, 1.3)
+            self.axes.set_zlim3d(-1.3, 1.3)
+        else:
+            self.plot_axes()
+            self.axes.set_axis_off()
+            self.axes.set_xlim3d(-0.7, 0.7)
+            self.axes.set_ylim3d(-0.7, 0.7)
+            self.axes.set_zlim3d(-0.7, 0.7)
         self.axes.grid(False)
         self.plot_back()
-        self.plot_axes()
         self.plot_points()
         self.plot_vectors()
         self.plot_front()
         self.plot_axes_labels()
+        self.plot_annotations()
 
     def plot_back(self):
         #----back half of sphere------------------
@@ -381,26 +469,21 @@ class Bloch():
                        lw=self.frame_width, color=self.frame_color)
         self.axes.plot(0 * span, span, zs=0, zdir='y', label='Z',
                        lw=self.frame_width, color=self.frame_color)
-        self.axes.set_xlim3d(-1.3, 1.3)
-        self.axes.set_ylim3d(-1.3, 1.3)
-        self.axes.set_zlim3d(-1.3, 1.3)
 
     def plot_axes_labels(self):
         # axes labels
-        self.axes.text(0, -self.xlpos[0], 0, self.xlabel[0],
-                       color=self.font_color, fontsize=self.font_size)
-        self.axes.text(0, -self.xlpos[1], 0, self.xlabel[1],
-                       color=self.font_color, fontsize=self.font_size)
+        opts = {'fontsize': self.font_size,
+                'color': self.font_color,
+                'horizontalalignment': 'center',
+                'verticalalignment': 'center'}
+        self.axes.text(0, -self.xlpos[0], 0, self.xlabel[0], **opts)
+        self.axes.text(0, -self.xlpos[1], 0, self.xlabel[1], **opts)
 
-        self.axes.text(self.ylpos[0], 0, 0, self.ylabel[0],
-                       color=self.font_color, fontsize=self.font_size)
-        self.axes.text(self.ylpos[1], 0, 0, self.ylabel[1],
-                       color=self.font_color, fontsize=self.font_size)
+        self.axes.text(self.ylpos[0], 0, 0, self.ylabel[0], **opts)
+        self.axes.text(self.ylpos[1], 0, 0, self.ylabel[1], **opts)
 
-        self.axes.text(0, 0, self.zlpos[0], self.zlabel[0],
-                       color=self.font_color, fontsize=self.font_size)
-        self.axes.text(0, 0, self.zlpos[1], self.zlabel[1],
-                       color=self.font_color, fontsize=self.font_size)
+        self.axes.text(0, 0, self.zlpos[0], self.zlabel[0], **opts)
+        self.axes.text(0, 0, self.zlpos[1], self.zlabel[1], **opts)
 
         for a in (self.axes.w_xaxis.get_ticklines() +
                   self.axes.w_xaxis.get_ticklabels()):
@@ -486,6 +569,18 @@ class Bloch():
                                real(self.points[k][2]),
                                alpha=0.75, zdir='z',
                                color=color)
+
+    def plot_annotations(self):
+        # -X and Y data are switched for plotting purposes
+        for annotation in self.annotations:
+            vec = annotation['position']
+            opts = {'fontsize': self.font_size,
+                    'color': self.font_color,
+                    'horizontalalignment': 'center',
+                    'verticalalignment': 'center'}
+            opts.update(annotation['opts'])
+            self.axes.text(vec[1], -vec[0], vec[2],
+                           annotation['text'], **opts)
 
     def show(self):
         """
